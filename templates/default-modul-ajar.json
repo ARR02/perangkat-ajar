@@ -1,0 +1,22 @@
+{
+  "$schema": "template-modul-ajar-v1",
+  "name": "Format Modul Ajar Standar",
+  "version": 1,
+  "sections": [
+    {
+      "id": "informasi_umum",
+      "title": "I. Informasi Umum",
+      "fields": ["identitas_sekolah", "kompetensi_awal", "profil_pelajar_pancasila", "sarana_prasarana", "target_peserta_didik", "model_pembelajaran"]
+    },
+    {
+      "id": "komponen_inti",
+      "title": "II. Komponen Inti",
+      "fields": ["tujuan_pembelajaran", "pemahaman_bermakna", "pertanyaan_pemantik", "kegiatan_pembelajaran", "asesmen", "pengayaan_remedial", "refleksi_guru_siswa"]
+    },
+    {
+      "id": "lampiran",
+      "title": "III. Lampiran",
+      "fields": ["lembar_kerja_peserta_didik", "bahan_bacaan_guru_siswa", "glosarium", "daftar_pustaka"]
+    }
+  ]
+}

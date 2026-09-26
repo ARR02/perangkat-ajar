@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStatus {
+  DRAFT
+  GENERATING
+  READY
+  NEEDS_REVIEW
+  FAILED
+  ARCHIVED
+}
+
+enum DocumentType {
+  CP
+  TP
+  ATP
+  KKTP
+  PROTA
+  PROSEM
+  MODUL_AJAR
+  LKPD
+}
+
+model User {
+  id        String              @id @default(uuid())
+  email     String              @unique
+  name      String?
+  schools   School[]
+  teachers  Teacher[]
+  projects  CurriculumProject[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@index([email])
+}
+
+model School {
+  id        String              @id @default(uuid())
+  name      String
+  ownerId   String
+  owner     User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  teachers  Teacher[]
+  projects  CurriculumProject[]
+  templates Template[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@index([ownerId])
+  @@index([name])
+}
+
+model Teacher {
+  id        String              @id @default(uuid())
+  userId    String
+  schoolId  String
+  name      String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school    School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  projects  CurriculumProject[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([userId, schoolId])
+  @@index([schoolId])
+}
+
+model CurriculumProject {
+  id                 String              @id @default(uuid())
+  userId             String
+  schoolId           String
+  teacherId          String
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school             School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  teacher            Teacher             @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  context            CurriculumContext?
+  cpDocuments        CPDocument[]
+  tpDocuments        TPDocument[]
+  atpDocuments       ATPDocument[]
+  kktpDocuments      KKTPDocument[]
+  protaDocuments     ProtaDocument[]
+  prosemDocuments    ProsemDocument[]
+  modulDocuments     ModulDocument[]
+  lkpdDocuments      LkpdDocument[]
+  generatedDocuments GeneratedDocument[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([userId, updatedAt])
+  @@index([schoolId, updatedAt])
+}
+
+model CurriculumContext {
+  id                 String            @id @default(uuid())
+  projectId          String            @unique
+  project            CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  school             Json
+  teacher            Json
+  curriculum         String
+  phase              String
+  grade              String
+  semester           String
+  academicYear       String
+  subject            String
+  weeklyHours        Int?
+  cp                 Json
+  learningObjectives Json
+  learningSequences  Json
+  assessmentCriteria Json
+  annualProgram      Json
+  semesterProgram    Json
+  modules            Json
+  worksheets         Json
+  version            Int               @default(1)
+  updatedAt          DateTime          @updatedAt
+
+  @@index([subject, phase, academicYear])
+}
+
+model CPDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model TPDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model ATPDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model KKTPDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model ProtaDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model ProsemDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model ModulDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model LkpdDocument {
+  id          String            @id @default(uuid())
+  projectId   String
+  project     CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int               @default(1)
+  status      DocumentStatus    @default(DRAFT)
+  contentJson Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId, status])
+}
+
+model Template {
+  id           String          @id @default(uuid())
+  schoolId     String
+  name         String
+  documentType DocumentType
+  version      Int             @default(1)
+  schemaJson   Json
+  school       School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  fields       TemplateField[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([schoolId, documentType])
+}
+
+model TemplateField {
+  id         String   @id @default(uuid())
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  key        String
+  label      String
+  fieldType  String
+  required   Boolean  @default(false)
+  position   Int
+  configJson Json?
+
+  @@unique([templateId, key])
+  @@index([templateId, position])
+}
+
+model GeneratedDocument {
+  id           String            @id @default(uuid())
+  projectId    String
+  project      CurriculumProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type         DocumentType
+  status       DocumentStatus    @default(GENERATING)
+  contentJson  Json
+  errorMessage String?
+  versions     DocumentVersion[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([projectId, type, status])
+}
+
+model DocumentVersion {
+  id                  String            @id @default(uuid())
+  generatedDocumentId String
+  generatedDocument   GeneratedDocument @relation(fields: [generatedDocumentId], references: [id], onDelete: Cascade)
+  version             Int
+  contentJson         Json
+  sourceDocumentIds   Json
+  needsReview         Boolean           @default(false)
+  warnings            Json?
+  createdAt           DateTime          @default(now())
+
+  @@unique([generatedDocumentId, version])
+}
+
+model AiGenerationLog {
+  id          String   @id @default(uuid())
+  projectId   String?
+  provider    String
+  model       String?
+  operation   String
+  status      String
+  requestId   String   @unique
+  errorCode   String?
+  durationMs  Int?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId, createdAt])
+  @@index([provider, status])
+}
