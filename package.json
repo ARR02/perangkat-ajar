@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "postinstall": "prisma generate --schema=database/schema.prisma",
-    "db:push": "prisma db push --schema=database/schema.prisma",
+    "build": "npx prisma generate --schema=database/schema.prisma && next build",
+    "postinstall": "npx prisma generate --schema=database/schema.prisma",
+    "db:push": "npx prisma db push --schema=database/schema.prisma",
     "start": "next start",
     "lint": "eslint . --fix",
     "typecheck": "tsc --noEmit",
