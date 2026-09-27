@@ -1,8 +1,15 @@
 import { env } from "@/lib/env";
 import type { AIProvider, StructuredRequest, StructuredResponse } from "./provider";
 
-const DEFAULT_MODEL = "gemini-2.0-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+
+const FALLBACK_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-1.5-flash",
+  "gemini-2.0-flash-exp",
+  "gemini-1.5-pro",
+];
 
 export class AIProviderError extends Error {
   constructor(
@@ -41,29 +48,41 @@ export class GeminiProvider implements AIProvider {
       throw new AIProviderError("AI_API_KEY belum dikonfigurasi pada server.", "MISSING_API_KEY", 500);
     }
 
+    const modelsToTry = [
+      this.model,
+      ...FALLBACK_MODELS,
+    ].filter((m, i, arr) => Boolean(m) && arr.indexOf(m) === i);
+
     let lastError: unknown;
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
-      const started = Date.now();
-      try {
-        const raw = await this.callApi(req);
-        const parsed = JSON.parse(stripCodeFence(raw)) as T;
-        return { output: parsed, model: this.model, durationMs: Date.now() - started };
-      } catch (error) {
-        lastError = error;
-        const retryable = !(error instanceof AIProviderError) || error.status === 429 || error.status >= 500;
-        if (!retryable || attempt === this.maxRetries) break;
-        await new Promise((r) => setTimeout(r, 2 ** attempt * 500));
+    for (const model of modelsToTry) {
+      for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+        const started = Date.now();
+        try {
+          const raw = await this.callApiWithModel(model, req);
+          const parsed = JSON.parse(stripCodeFence(raw)) as T;
+          return { output: parsed, model, durationMs: Date.now() - started };
+        } catch (error) {
+          lastError = error;
+          if (error instanceof AIProviderError && error.status === 404) {
+            // Model deprecated or not found (404), fall through to next candidate model
+            break;
+          }
+          const retryable = !(error instanceof AIProviderError) || error.status === 429 || error.status >= 500;
+          if (!retryable || attempt === this.maxRetries) break;
+          await new Promise((r) => setTimeout(r, 2 ** attempt * 500));
+        }
       }
     }
+
     throw lastError instanceof Error ? lastError : new Error("Gagal memanggil provider AI.");
   }
 
-  private async callApi(req: StructuredRequest): Promise<string> {
+  private async callApiWithModel(modelName: string, req: StructuredRequest): Promise<string> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      const res = await fetch(`${BASE_URL}/${this.model}:generateContent?key=${this.apiKey}`, {
+      const res = await fetch(`${BASE_URL}/${modelName}:generateContent?key=${this.apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
@@ -80,8 +99,15 @@ export class GeminiProvider implements AIProvider {
 
       if (!res.ok) {
         const body = await res.text();
-        const code = res.status === 429 ? "RATE_LIMITED" : res.status === 400 ? "INVALID_REQUEST" : "PROVIDER_ERROR";
-        throw new AIProviderError(`Provider AI error ${res.status}: ${body.slice(0, 300)}`, code, res.status);
+        const code =
+          res.status === 429
+            ? "RATE_LIMITED"
+            : res.status === 404
+              ? "MODEL_NOT_FOUND"
+              : res.status === 400
+                ? "INVALID_REQUEST"
+                : "PROVIDER_ERROR";
+        throw new AIProviderError(`Provider AI error ${res.status} (${modelName}): ${body.slice(0, 300)}`, code, res.status);
       }
 
       const data = (await res.json()) as {
