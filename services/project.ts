@@ -59,11 +59,16 @@ export async function createProject(input: CreateProjectInput) {
     }
 
     let teacher = await tx.teacher.findFirst({
-      where: { userId, schoolId: school.id, name: teacherName },
+      where: { userId, schoolId: school.id },
     });
     if (!teacher) {
       teacher = await tx.teacher.create({
         data: { userId, schoolId: school.id, name: teacherName },
+      });
+    } else if (teacher.name !== teacherName) {
+      teacher = await tx.teacher.update({
+        where: { id: teacher.id },
+        data: { name: teacherName },
       });
     }
 
