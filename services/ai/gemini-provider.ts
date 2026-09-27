@@ -1,13 +1,13 @@
 import { env } from "@/lib/env";
 import type { AIProvider, StructuredRequest, StructuredResponse } from "./provider";
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-3.7-flash";
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const FALLBACK_MODELS = [
+  "gemini-3.7-flash",
   "gemini-2.5-flash",
   "gemini-1.5-flash",
-  "gemini-2.0-flash-exp",
   "gemini-1.5-pro",
 ];
 
