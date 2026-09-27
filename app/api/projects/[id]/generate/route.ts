@@ -61,7 +61,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     } else {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
-  } catch {
+  } catch (err) {
+    console.error("GENERATE ERROR:", err);
     return NextResponse.json({ success: false, error: "Gagal generate dokumen" }, { status: 500 });
   }
 }
