@@ -74,17 +74,29 @@ export function DocumentGrid({
         body: JSON.stringify({ documentType: docKey, version: 1, format: "DOCX" }),
       });
 
-      const data = await res.json();
-      if (res.ok && data.url) {
-        // Trigger download
+      if (res.ok) {
+        const blob = await res.blob();
+        const disposition = res.headers.get("Content-Disposition") || "";
+        const match = disposition.match(/filename="?([^";]+)"?/);
+        const filename = match?.[1] || `${docKey}.docx`;
+
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = data.url;
-        a.download = data.filename || `${docKey}.docx`;
+        a.href = url;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
       } else {
-        alert(data.error || "Gagal mengekspor dokumen");
+        let message = "Gagal mengekspor dokumen";
+        try {
+          const data = await res.json();
+          message = data.error || message;
+        } catch {
+          // ignore non-JSON error body
+        }
+        alert(message);
       }
     } catch {
       alert("Terjadi kesalahan jaringan saat mengunduh berkas.");

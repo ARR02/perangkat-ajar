@@ -32,5 +32,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const result = await exportDocument(projectId, documentType as DocumentType, version, "DOCX");
-  return NextResponse.json(result, { status: result.success ? 200 : 404 });
+  if (!result.success || !result.buffer) {
+    return NextResponse.json({ success: false, error: result.error || "Gagal membuat file DOCX", filename: result.filename }, { status: 404 });
+  }
+  const arrayBuffer = result.buffer.buffer.slice(result.buffer.byteOffset, result.buffer.byteOffset + result.buffer.byteLength) as ArrayBuffer;
+  return new NextResponse(arrayBuffer, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="${result.filename}"`,
+    },
+  });
 }

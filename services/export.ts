@@ -14,12 +14,10 @@ import {
   BorderStyle,
   HeadingLevel,
 } from "docx";
-import { writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 
 export interface ExportResult {
   success: boolean;
-  url?: string;
+  buffer?: Buffer;
   error?: string;
   filename: string;
 }
@@ -317,12 +315,8 @@ export async function exportDocument(
   }
 
   const filename = `${documentType}-${projectId.slice(0, 8)}.docx`;
-  const exportDir = join(process.cwd(), "public", "exports");
-  const filePath = join(exportDir, filename);
 
   try {
-    await mkdir(exportDir, { recursive: true });
-
     const doc = new Document({
       sections: [
         {
@@ -333,7 +327,6 @@ export async function exportDocument(
     });
 
     const buffer = await Packer.toBuffer(doc);
-    await writeFile(filePath, buffer);
 
     await db.aiGenerationLog.create({
       data: {
@@ -346,7 +339,7 @@ export async function exportDocument(
       },
     });
 
-    return { success: true, url: `/exports/${filename}`, filename };
+    return { success: true, buffer, filename };
   } catch (error) {
     console.error("Export error:", error);
     return { success: false, error: "Gagal membuat file DOCX", filename };
