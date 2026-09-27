@@ -420,7 +420,7 @@ export function DocumentGrid({
       {/* Grid of Documents */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {documents.map((doc) => {
-          const occupied = doc.dependsOn && !documents.find((d) => d.label === doc.dependsOn)?.ready;
+          const occupied = doc.dependsOn && !documents.find((d) => d.key === doc.dependsOn)?.ready;
           const isProcessing = loading === doc.label;
           const isExporting = exporting === doc.key;
 

@@ -75,7 +75,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       key: "LKPD" as const,
       label: "Lembar Kerja Siswa (LKPD)",
       ready: master.worksheets.length > 0,
-      dependsOn: "Modul Ajar",
+      dependsOn: "MODUL_AJAR",
       count: master.worksheets.length,
     },
   ];
