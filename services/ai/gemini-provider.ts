@@ -1,15 +1,21 @@
 import { env } from "@/lib/env";
 import type { AIProvider, StructuredRequest, StructuredResponse } from "./provider";
 
-const DEFAULT_MODEL = "gemini-3.7-flash";
+const DEFAULT_MODEL = "gemini-3.8-flash";
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
-const FALLBACK_MODELS = [
+const PREFERRED_MODELS = [
+  "gemini-3.8-flash",
   "gemini-3.7-flash",
+  "gemini-3.5-flash",
+  "gemini-3.1-flash-lite",
   "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
   "gemini-1.5-flash",
   "gemini-1.5-pro",
 ];
+
+let cachedDiscoveredModels: string[] | null = null;
 
 export class AIProviderError extends Error {
   constructor(
@@ -27,6 +33,17 @@ function stripCodeFence(text: string): string {
   return (fence ? fence[1] : text).trim();
 }
 
+function cleanModelName(model: string): string {
+  return model
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .replace(/^models\//, "");
+}
+
+function cleanApiKey(key: string): string {
+  return key.trim().replace(/^["']|["']$/g, "");
+}
+
 export class GeminiProvider implements AIProvider {
   readonly name = "gemini";
   private readonly model: string;
@@ -35,12 +52,39 @@ export class GeminiProvider implements AIProvider {
   private readonly maxRetries: number;
 
   constructor() {
-    this.apiKey = (env.AI_API_KEY || "").trim();
-    this.model = (process.env.AI_MODEL || DEFAULT_MODEL).trim();
+    this.apiKey = cleanApiKey(env.AI_API_KEY || "");
+    this.model = cleanModelName(process.env.AI_MODEL || DEFAULT_MODEL);
     const rawTimeout = process.env.AI_TIMEOUT_MS ? Number(process.env.AI_TIMEOUT_MS) : 60_000;
     this.timeoutMs = Number.isFinite(rawTimeout) && rawTimeout >= 1000 ? rawTimeout : 60_000;
     const rawRetries = process.env.AI_MAX_RETRIES ? Number(process.env.AI_MAX_RETRIES) : 2;
     this.maxRetries = Number.isFinite(rawRetries) && rawRetries >= 0 ? rawRetries : 2;
+  }
+
+  private async getAvailableModels(): Promise<string[]> {
+    if (cachedDiscoveredModels && cachedDiscoveredModels.length > 0) {
+      return cachedDiscoveredModels;
+    }
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${this.apiKey}`);
+      if (res.ok) {
+        const data = (await res.json()) as {
+          models?: { name: string; supportedGenerationMethods?: string[] }[];
+        };
+        const discovered = (data.models || [])
+          .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+          .map((m) => cleanModelName(m.name));
+
+        if (discovered.length > 0) {
+          cachedDiscoveredModels = discovered;
+          return discovered;
+        }
+      }
+    } catch {
+      // ignore discovery error and fallback to static list
+    }
+
+    return PREFERRED_MODELS;
   }
 
   async generateStructured<T>(req: StructuredRequest): Promise<StructuredResponse<T>> {
@@ -48,13 +92,18 @@ export class GeminiProvider implements AIProvider {
       throw new AIProviderError("AI_API_KEY belum dikonfigurasi pada server.", "MISSING_API_KEY", 500);
     }
 
-    const modelsToTry = [
+    // Dynamic model candidate resolution
+    const dynamicModels = await this.getAvailableModels();
+    const candidateList = [
       this.model,
-      ...FALLBACK_MODELS,
-    ].filter((m, i, arr) => Boolean(m) && arr.indexOf(m) === i);
+      ...PREFERRED_MODELS,
+      ...dynamicModels,
+    ]
+      .map(cleanModelName)
+      .filter((m, i, arr) => Boolean(m) && arr.indexOf(m) === i);
 
     let lastError: unknown;
-    for (const model of modelsToTry) {
+    for (const model of candidateList) {
       for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
         const started = Date.now();
         try {
@@ -64,7 +113,7 @@ export class GeminiProvider implements AIProvider {
         } catch (error) {
           lastError = error;
           if (error instanceof AIProviderError && error.status === 404) {
-            // Model deprecated or not found (404), fall through to next candidate model
+            // Model 404 (not supported/deprecated), immediately try next model candidate
             break;
           }
           const retryable = !(error instanceof AIProviderError) || error.status === 429 || error.status >= 500;
@@ -80,9 +129,10 @@ export class GeminiProvider implements AIProvider {
   private async callApiWithModel(modelName: string, req: StructuredRequest): Promise<string> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const sanitizedModel = cleanModelName(modelName);
 
     try {
-      const res = await fetch(`${BASE_URL}/${modelName}:generateContent?key=${this.apiKey}`, {
+      const res = await fetch(`${BASE_URL}/${sanitizedModel}:generateContent?key=${this.apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
@@ -107,7 +157,7 @@ export class GeminiProvider implements AIProvider {
               : res.status === 400
                 ? "INVALID_REQUEST"
                 : "PROVIDER_ERROR";
-        throw new AIProviderError(`Provider AI error ${res.status} (${modelName}): ${body.slice(0, 300)}`, code, res.status);
+        throw new AIProviderError(`Provider AI error ${res.status} (${sanitizedModel}): ${body.slice(0, 300)}`, code, res.status);
       }
 
       const data = (await res.json()) as {
