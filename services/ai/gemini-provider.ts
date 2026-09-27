@@ -28,10 +28,12 @@ export class GeminiProvider implements AIProvider {
   private readonly maxRetries: number;
 
   constructor() {
-    this.apiKey = env.AI_API_KEY;
-    this.model = process.env.AI_MODEL || DEFAULT_MODEL;
-    this.timeoutMs = Number(process.env.AI_TIMEOUT_MS ?? 60_000);
-    this.maxRetries = Number(process.env.AI_MAX_RETRIES ?? 2);
+    this.apiKey = (env.AI_API_KEY || "").trim();
+    this.model = (process.env.AI_MODEL || DEFAULT_MODEL).trim();
+    const rawTimeout = process.env.AI_TIMEOUT_MS ? Number(process.env.AI_TIMEOUT_MS) : 60_000;
+    this.timeoutMs = Number.isFinite(rawTimeout) && rawTimeout >= 1000 ? rawTimeout : 60_000;
+    const rawRetries = process.env.AI_MAX_RETRIES ? Number(process.env.AI_MAX_RETRIES) : 2;
+    this.maxRetries = Number.isFinite(rawRetries) && rawRetries >= 0 ? rawRetries : 2;
   }
 
   async generateStructured<T>(req: StructuredRequest): Promise<StructuredResponse<T>> {
