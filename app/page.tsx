@@ -2,6 +2,10 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import TiltCard from "@/components/tilt-card";
 import { ArrowRight, BrainCircuit, FileSearch, FileText, Layers, Sparkles, Zap } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Reveal, StaggerContainer, StaggerItem } from "@/components/scroll-reveal";
+
+import Background3DWrapper from "@/components/background-3d-wrapper";
 
 const flowSteps = [
   { code: "CP", title: "Capaian Pembelajaran", desc: "Elemen & capaian resmi per fase kurikulum." },
@@ -48,6 +52,7 @@ export default async function HomePage() {
 
   return (
     <div className="relative flex min-h-screen flex-col">
+      <Background3DWrapper />
       <div className="grid-floor pointer-events-none -z-[1] opacity-60" aria-hidden />
 
       <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[rgba(5,7,15,0.6)] backdrop-blur-xl">
@@ -73,92 +78,104 @@ export default async function HomePage() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-20">
-        <div className="text-center">
-          <span className="chip">
-            <Sparkles className="h-3.5 w-3.5" />
-            Kurikulum Merdeka AI Platform
-          </span>
+        <Reveal>
+          <div className="text-center">
+            <span className="chip">
+              <Sparkles className="h-3.5 w-3.5" />
+              Kurikulum Merdeka AI Platform
+            </span>
 
-          <h1 className="text-glow mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white md:text-6xl">
-            Otomasi Penyusunan <span className="text-gradient">Perangkat Ajar</span> Lengkap &amp; Terintegrasi
-          </h1>
+            <h1 className="text-glow mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white md:text-6xl">
+              Otomasi Penyusunan <span className="text-gradient">Perangkat Ajar</span> Lengkap &amp; Terintegrasi
+            </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[var(--muted)] md:text-lg">
-            Dari <strong className="text-white">Capaian Pembelajaran (CP)</strong> hingga{" "}
-            <strong className="text-white">Modul Ajar &amp; LKPD</strong> dalam satu alur terstruktur. Dilengkapi
-            validasi konsistensi otomatis dan ekspor siap pakai ke format Word.
-          </p>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[var(--muted)] md:text-lg">
+              Dari <strong className="text-white">Capaian Pembelajaran (CP)</strong> hingga{" "}
+              <strong className="text-white">Modul Ajar &amp; LKPD</strong> dalam satu alur terstruktur. Dilengkapi
+              validasi konsistensi otomatis dan ekspor siap pakai ke format Word.
+            </p>
 
-          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href={startHref} className="btn-neon w-full sm:w-auto">
-              <Zap className="h-4 w-4" />
-              Mulai Buat Perangkat Ajar
-            </Link>
-            <Link href="/dashboard" className="btn-ghost w-full sm:w-auto">
-              Lihat Ruang Kerja Demo
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="glass holo-card rounded-2xl px-5 py-6 text-center">
-              <p className="stat-num text-3xl font-extrabold md:text-4xl">{stat.value}</p>
-              <p className="mt-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">{stat.label}</p>
+            <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link href={startHref} className="btn-neon w-full sm:w-auto">
+                <Zap className="h-4 w-4" />
+                Mulai Buat Perangkat Ajar
+              </Link>
+              <Link href="/dashboard" className="btn-ghost w-full sm:w-auto">
+                Lihat Ruang Kerja Demo
+              </Link>
             </div>
+          </div>
+        </Reveal>
+
+        <StaggerContainer className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <StaggerItem key={stat.label}>
+              <div className="glass holo-card h-full rounded-2xl px-5 py-6 text-center">
+                <p className="stat-num text-3xl font-extrabold md:text-4xl">{stat.value}</p>
+                <p className="mt-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">{stat.label}</p>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
 
         <section id="alur" className="mt-24 scroll-mt-20">
-          <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold text-white md:text-3xl">Alur Penyusunan Terintegrasi</h2>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Prinsip <em className="text-[#22d3ee] not-italic">generate once, reuse everywhere</em> menjaga
-              konsistensi seluruh dokumen turunan.
-            </p>
-          </div>
+          <Reveal>
+            <div className="mb-10 text-center">
+              <h2 className="text-2xl font-bold text-white md:text-3xl">Alur Penyusunan Terintegrasi</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                Prinsip <em className="text-[#22d3ee] not-italic">generate once, reuse everywhere</em> menjaga
+                konsistensi seluruh dokumen turunan.
+              </p>
+            </div>
+          </Reveal>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {flowSteps.map((step, idx) => (
-              <TiltCard key={step.code} className="p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="rounded-md border border-[rgba(34,211,238,0.32)] bg-[rgba(34,211,238,0.12)] px-2 py-0.5 text-xs font-bold text-[#7dd3fc]">
-                    {step.code}
-                  </span>
-                  <span className="text-[11px] font-semibold text-[var(--muted)]">Tahap {idx + 1}</span>
-                </div>
-                <h3 className="text-sm font-bold text-white">{step.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--muted)]">{step.desc}</p>
-              </TiltCard>
+              <StaggerItem key={step.code}>
+                <TiltCard className="h-full p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="rounded-md border border-[rgba(34,211,238,0.32)] bg-[rgba(34,211,238,0.12)] px-2 py-0.5 text-xs font-bold text-[#7dd3fc]">
+                      {step.code}
+                    </span>
+                    <span className="text-[11px] font-semibold text-[var(--muted)]">Tahap {idx + 1}</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white">{step.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--muted)]">{step.desc}</p>
+                </TiltCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </section>
 
         <section id="kemampuan" className="mt-24 scroll-mt-20">
-          <div className="grid gap-5 md:grid-cols-3">
+          <StaggerContainer className="grid gap-5 md:grid-cols-3">
             {features.map((feature) => (
-              <TiltCard key={feature.title} className="p-6">
-                <feature.icon className={`h-7 w-7 ${feature.accent}`} />
-                <h3 className="mt-3 text-base font-bold text-white">{feature.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{feature.desc}</p>
-              </TiltCard>
+              <StaggerItem key={feature.title}>
+                <TiltCard className="h-full p-6">
+                  <feature.icon className={`h-7 w-7 ${feature.accent}`} />
+                  <h3 className="mt-3 text-base font-bold text-white">{feature.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{feature.desc}</p>
+                </TiltCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </section>
 
         <section id="mulai" className="mt-24 scroll-mt-20">
-          <TiltCard className="p-10 text-center">
-            <Layers className="mx-auto h-8 w-8 text-[#22d3ee]" />
-            <h2 className="mt-4 text-2xl font-bold text-white">Siap menyusun perangkat ajar hari ini?</h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--muted)]">
-              Masuk ke ruang kerja, pilih paket dokumen, lalu biarkan AI menyusun draf yang konsisten dengan
-              kurikulum sekolah Anda.
-            </p>
-            <Link href={startHref} className="btn-neon mt-7">
-              Buka Ruang Kerja
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </TiltCard>
+          <Reveal>
+            <TiltCard className="p-10 text-center">
+              <Layers className="mx-auto h-8 w-8 text-[#22d3ee]" />
+              <h2 className="mt-4 text-2xl font-bold text-white">Siap menyusun perangkat ajar hari ini?</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--muted)]">
+                Masuk ke ruang kerja, pilih paket dokumen, lalu biarkan AI menyusun draf yang konsisten dengan
+                kurikulum sekolah Anda.
+              </p>
+              <Link href={startHref} className="btn-neon mt-7">
+                Buka Ruang Kerja
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </TiltCard>
+          </Reveal>
         </section>
       </main>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import NavLink from "@/components/nav-link";
 import { FileStack, FolderOpen, LayoutDashboard, Library, LogOut, School } from "lucide-react";
+import { PageTransition } from "@/components/page-transition";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -61,7 +62,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </aside>
 
-      <main className="flex-1 px-8 py-8">{children}</main>
+      <main className="flex-1 px-8 py-8">
+        <PageTransition>{children}</PageTransition>
+      </main>
     </div>
   );
 }

@@ -1,41 +1,38 @@
-# Rencana Pengembangan Proyek Website2
+# Rencana Pengembangan Proyek Website2 (Futuristic & 3D Update)
 
-## 1. PRD (Product Requirements Document)
+## 1. Visi & Tujuan Pembaruan UI/UX
+- **Visi**: Meningkatkan pengalaman pengguna (UX) dengan antarmuka yang sangat modern, interaktif, dan futuristik.
+- **Tujuan Utama**: 
+  - Mengubah UI/UX menjadi bertema "Sci-Fi / Futuristic".
+  - Menambahkan animasi 3D interaktif untuk meningkatkan engagement.
+  - Mempertahankan kinerja tinggi (waktu muat cepat) meskipun ada animasi 3D.
+  
+## 2. Kebutuhan Teknologi Baru
+- **Framer Motion**: Untuk animasi transisi halaman, *scroll reveal*, dan mikro-animasi elemen DOM yang mulus.
+- **Three.js & React Three Fiber (R3F)**: Untuk merender objek 3D secara *real-time* (seperti partikel melayang, geometri abstrak, atau representasi data 3D).
+- **React Three Drei**: Kumpulan *helper* untuk R3F untuk mempermudah pembuatan efek 3D (kamera, kontrol, pencahayaan).
 
-- **Visi & Tujuan**: Bangun website sesuai kebutuhan pengguna (detail fitur belum diketahui, lihat inventaris kode). KPI utama: waktu muat < 2 detik, keamanan OWASP, dokumen lengkap.
-- **Scope**: UI responsif, API stabil, integrasi data, auth, CI/CD, dokumentasi.
-- **Kebutuhan Fungsional**: halaman, endpoint, alur pengguna (dijabarkan setelah audit kode).
-- **Kebutuhan Non‑Fungsional**: performa, SEO, aksesibilitas, keamanan, skalabilitas.
-- **KPI**: waktu muat < 2 s, uptime 99 %, coverage unit test ≥ 80 %.
+## 3. Rencana Eksekusi (Milestone Futuristik)
 
-## 2. Milestone
+### Fase 1: Persiapan & Instalasi
+- [ ] Instalasi dependensi: `framer-motion`, `three`, `@react-three/fiber`, `@react-three/drei`, `three-stdlib`.
+- [ ] Menyiapkan komponen dasar untuk kanvas 3D (misalnya `Background3D.tsx` atau `Hero3D.tsx`).
 
-| Milestone | Fokus | Deliverable | Acceptance |
-|-----------|-------|-------------|------------|
-| M1 – Audit & Inventaris | Struktur, dependensi, gap | Inventaris file, backlog awal | Semua file terdaftar, issues teridentifikasi |
-| M2 – Refaktor & Standarisasi | Lint, TypeScript, CI | `npm run lint` bersih, CI pipeline aktif | Lint 0 error, CI passing |
-| M3 – Fitur Inti | Implementasi halaman/API yang belum ada | UI/API selesai, e2e test | User‑flow berhasil, 200 % success |
-| M4 – Keamanan & Optimasi | Auth, CSP, audit performa | Middleware auth, header keamanan, bundle split | OWASP‑10 pass, bundle < X KB |
-| M5 – CI/CD & Deploy | GitHub Actions, staging env | Workflow deploy otomatis, roll‑back script | Deploy berhasil pada push ke `main` |
-| M6 – Dokumentasi & Release | README, OpenAPI, changelog | Docs build, versi tag | Docs publik, versi semver 1.0.0 |
+### Fase 2: Peningkatan Landing Page (Homepage)
+- [ ] **Hero Section 3D**: Menggantikan latar belakang statis dengan objek 3D interaktif yang merespons pergerakan kursor mouse.
+- [ ] **Scroll Animations**: Menggunakan Framer Motion agar elemen (fitur, statistik) muncul secara bertahap saat di-scroll (*fade-in up*, *stagger children*).
+- [ ] **Glow & Glassmorphism**: Memperhalus efek *glassmorphism* dan *neon glow* pada tombol dan kartu agar lebih menyatu dengan elemen 3D di belakangnya.
 
-## 3. Skema Pengembangan
+### Fase 3: Peningkatan Dashboard
+- [ ] **Sidebar & Header Animasi**: Menambahkan transisi mulus saat membuka/tutup sidebar dan navigasi.
+- [ ] **List/Grid Animasi**: Menganimasikan kemunculan kartu dokumen atau proyek menggunakan *layout animations* dari Framer Motion.
+- [ ] **Micro-interactions**: Efek *hover* yang lebih hidup menggunakan varian *framer-motion* dan kursor kustom.
 
-- **Branching**: `main` protected → fitur `feat/<nama>`, bugfix `fix/<nama>`.
-- **Pull Request**: wajib lint + unit test + reviewer approval.
-- **Testing**: Jest (unit), Supertest (API), Cypress (e2e).
-- **Code Review**: checklist lint, test coverage, security.
-- **Release**: semantic versioning, auto‑tag via GitHub Actions, changelog otomatis.
+### Fase 4: Optimasi & Performa
+- [ ] **Lazy Loading 3D**: Memuat komponen 3D secara dinamis (`next/dynamic`) agar tidak memblokir render pertama (FCP).
+- [ ] **Fallback UI**: Menyediakan tampilan 2D fallback jika WebGL tidak didukung di perangkat pengguna.
 
-## 4. Risiko & Mitigasi
-
-- Dependensi usang → upgrade bertahap, lockfile.
-- Kurang tes → coverage minimum tiap sprint.
-- Scope creep → backlog MoSCoW, perubahan via PR.
-
-## 5. Langkah Selanjutnya
-
-1. Eksplorasi kode sumber (tree, README, package.json).
-2. Isi inventaris fitur & gap.
-3. Perbarui PRD dan milestone berdasarkan temuan.
-4. Eksekusi per sprint sesuai skema.
+## 4. Langkah Eksekusi Saat Ini
+1. Instal dependensi framer-motion dan three.js.
+2. Buat komponen efek partikel/bintang 3D.
+3. Integrasikan framer-motion pada `app/page.tsx`.
