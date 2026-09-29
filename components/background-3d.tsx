@@ -3,11 +3,12 @@
 import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
-// @ts-ignore
+// @ts-expect-error maath does not have types
 import * as random from "maath/random/dist/maath-random.esm";
+import * as THREE from "three";
 
-function Starfield(props: any) {
-  const ref = useRef<any>();
+function Starfield(props: Record<string, unknown>) {
+  const ref = useRef<THREE.Points>(null);
   const sphere = random.inSphere(new Float32Array(5000), { radius: 1.5 });
 
   useFrame((state, delta) => {

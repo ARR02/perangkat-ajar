@@ -2,7 +2,6 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import TiltCard from "@/components/tilt-card";
 import { ArrowRight, BrainCircuit, FileSearch, FileText, Layers, Sparkles, Zap } from "lucide-react";
-import dynamic from "next/dynamic";
 import { Reveal, StaggerContainer, StaggerItem } from "@/components/scroll-reveal";
 
 import Background3DWrapper from "@/components/background-3d-wrapper";
