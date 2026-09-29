@@ -23,38 +23,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const body = await request.json();
-  const { type } = body;
+  const type = body?.type;
+
+  const generators: Record<string, (projectId: string) => Promise<{ ok: boolean; data?: unknown; error?: string }>> = {
+    CP: generateCP,
+    TP: generateTP,
+    ATP: generateATP,
+    KKTP: generateKKTP,
+    PROTA: generateProta,
+    PROSEM: generateProsem,
+    MODUL_AJAR: generateModul,
+    LKPD: generateLkpd,
+  };
+
+  if (typeof type !== "string" || !(type in generators)) {
+    return NextResponse.json({ error: "Type dokumen tidak didukung" }, { status: 400 });
+  }
 
   try {
-    let result;
-    switch (type) {
-      case "CP":
-        result = await generateCP(projectId);
-        break;
-      case "TP":
-        result = await generateTP(projectId);
-        break;
-      case "ATP":
-        result = await generateATP(projectId);
-        break;
-      case "KKTP":
-        result = await generateKKTP(projectId);
-        break;
-      case "PROTA":
-        result = await generateProta(projectId);
-        break;
-      case "PROSEM":
-        result = await generateProsem(projectId);
-        break;
-      case "Modul Ajar":
-        result = await generateModul(projectId);
-        break;
-      case "LKPD":
-        result = await generateLkpd(projectId);
-        break;
-      default:
-        return NextResponse.json({ error: "Type dokumen tidak didukung" }, { status: 400 });
-    }
+    const result = await generators[type](projectId);
 
     if (result.ok) {
       return NextResponse.json({ success: true, data: result.data });

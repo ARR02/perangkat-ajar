@@ -11,7 +11,7 @@
     "lint": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "tsx tests/curriculum-master.test.ts && tsx tests/generators.test.ts",
+    "test": "tsx tests/curriculum-master.test.ts && tsx tests/generators.test.ts && tsx tests/consistency.test.ts",
     "test:integration": "tsx tests/integration.test.ts"
   },
   "dependencies": {

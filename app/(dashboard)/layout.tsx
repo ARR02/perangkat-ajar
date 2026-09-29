@@ -1,90 +1,67 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import NavLink from "@/components/nav-link";
+import { FileStack, FolderOpen, LayoutDashboard, Library, LogOut, School } from "lucide-react";
+
+const navItems = [
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/projects", icon: FolderOpen, label: "Proyek Saya" },
+  { href: "/documents", icon: Library, label: "Pustaka Dokumen" },
+  { href: "/schools", icon: School, label: "Data Sekolah" },
+  { href: "/templates", icon: FileStack, label: "Template Dokumen" },
+];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50">
-      <aside className="w-64 border-r border-gray-200 bg-white p-6 flex flex-col justify-between">
+    <div className="flex min-h-screen">
+      <aside className="glass sticky top-0 flex h-screen w-64 flex-col justify-between border-r border-[var(--line)] p-6">
         <div>
-          <Link href="/dashboard" className="flex items-center gap-2 mb-8">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-base shadow-sm">
+          <Link href="/dashboard" className="mb-8 flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#22d3ee] text-base font-bold text-white shadow-[0_10px_24px_-10px_rgba(124,92,255,0.95)]">
               P
             </span>
-            <div>
-              <span className="block text-base font-bold text-gray-900 leading-none">
-                Perangkat Ajar
-              </span>
-              <span className="block text-[11px] font-semibold text-blue-600 uppercase tracking-wider mt-0.5">
+            <span>
+              <span className="block text-base font-bold leading-none text-white">Perangkat Ajar</span>
+              <span className="mt-1 block text-[11px] font-semibold uppercase tracking-wider text-[#22d3ee]">
                 AI Platform
               </span>
-            </div>
+            </span>
           </Link>
 
           <nav className="space-y-1.5">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-            >
-              <span>📊</span>
-              <span>Dashboard</span>
-            </Link>
-            <Link
-              href="/projects"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-            >
-              <span>📁</span>
-              <span>Proyek Saya</span>
-            </Link>
-            <Link
-              href="/documents"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-            >
-              <span>📄</span>
-              <span>Pustaka Dokumen</span>
-            </Link>
-            <Link
-              href="/schools"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-            >
-              <span>🏫</span>
-              <span>Data Sekolah</span>
-            </Link>
-            <Link
-              href="/templates"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-            >
-              <span>📐</span>
-              <span>Template Dokumen</span>
-            </Link>
+            {navItems.map((item) => (
+              <NavLink key={item.href} href={item.href} icon={item.icon} label={item.label} />
+            ))}
           </nav>
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-[var(--line)] pt-4">
           <div className="flex items-center gap-3 px-2 py-1.5">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(34,211,238,0.35)] bg-[rgba(34,211,238,0.1)] text-xs font-bold text-[#7dd3fc]">
               {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-900 truncate">
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs font-semibold text-white">
                 {session?.user?.name || "Guru"}
-              </p>
-              <p className="text-[11px] text-gray-500 truncate">
+              </span>
+              <span className="block truncate text-[11px] text-[var(--muted)]">
                 {session?.user?.email || "guru@sekolah.sch.id"}
-              </p>
-            </div>
+              </span>
+            </span>
           </div>
           <Link
             href="/login"
-            className="mt-3 block w-full rounded-lg border border-gray-200 px-3 py-1.5 text-center text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-white/[0.03] px-3 py-2 text-xs font-semibold text-[var(--muted)] transition hover:border-[rgba(34,211,238,0.5)] hover:text-white"
           >
-            Ganti Akun / Logout
+            <LogOut className="h-3.5 w-3.5" />
+            Ganti Akun
           </Link>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 max-w-7xl">{children}</main>
+      <main className="flex-1 px-8 py-8">{children}</main>
     </div>
   );
 }

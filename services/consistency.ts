@@ -10,6 +10,40 @@ export interface ConsistencyResult {
   }>;
 }
 
+const FIXABLE_ISSUES: Record<string, { docKey: string; reason: string }> = {
+  TP_CP_MISMATCH: { docKey: "TP", reason: "TP dibuat ulang agar merujuk elemen CP yang ada" },
+  CP_MISSING_FOR_TP: { docKey: "CP", reason: "CP dibuat karena TP sudah terlanjur ada" },
+  ATP_TP_MISSING: { docKey: "ATP", reason: "ATP dibuat ulang agar merujuk TP yang ada" },
+  KKTP_TP_MISSING: { docKey: "KKTP", reason: "KKTP dibuat ulang agar merujuk TP yang ada" },
+  MODUL_ATP_MISSING: { docKey: "MODUL_AJAR", reason: "Modul Ajar dibuat ulang agar merujuk ATP yang ada" },
+  LKPD_MODUL_MISSING: { docKey: "LKPD", reason: "LKPD dibuat ulang agar merujuk Modul Ajar yang ada" },
+};
+
+const DEP_ORDER = ["CP", "TP", "ATP", "KKTP", "PROTA", "PROSEM", "MODUL_AJAR", "LKPD"];
+
+export interface FixPlanItem {
+  docKey: string;
+  reason: string;
+}
+
+/**
+ * Memetakan issue konsistensi ke dokumen yang perlu dibuat ulang (regenerate).
+ * Hanya perbaikan non-destruktif — tidak menghapus data. Diurutkan sesuai
+ * rantai dependensi (CP → TP → ATP → ...) supaya referensi anak lahir dari
+ * induk yang terbaru.
+ */
+export function getFixPlan(issues: ConsistencyResult["issues"]): FixPlanItem[] {
+  const reasons = new Map<string, string>();
+  for (const issue of issues) {
+    const fix = FIXABLE_ISSUES[issue.type];
+    if (fix && !reasons.has(fix.docKey)) reasons.set(fix.docKey, fix.reason);
+  }
+  return DEP_ORDER.filter((k) => reasons.has(k)).map((docKey) => ({
+    docKey,
+    reason: reasons.get(docKey)!,
+  }));
+}
+
 /**
  * Menjalankan Consistency Engine pada satu Curriculum Master.
  */

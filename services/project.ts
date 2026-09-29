@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/database";
+import { runConsistencyCheck } from "./consistency";
 
 export interface CreateProjectInput {
   userId: string;
@@ -138,11 +139,34 @@ export async function getDashboardStats(userId: string) {
     }
   }
 
+  const allProjectIds = await db.curriculumProject.findMany({
+    where: { userId },
+    select: { id: true },
+  });
+  const consistencyChecks = await Promise.all(
+    allProjectIds.map(async (p) => [p.id, await runConsistencyCheck(p.id)] as const)
+  );
+  const statusByProject = new Map(consistencyChecks.map(([id, r]) => [id, r.status] as const));
+  const consistencySummary = consistencyChecks.reduce(
+    (acc, [, r]) => {
+      if (r.status === "passed") acc.passed++;
+      else if (r.status === "warning") acc.attention++;
+      else acc.failed++;
+      return acc;
+    },
+    { passed: 0, attention: 0, failed: 0 }
+  );
+  const recentConsistency = new Map(
+    recentProjects.map((p) => [p.id, statusByProject.get(p.id) ?? "failed"] as const)
+  );
+
   return {
     projectsCount,
     schoolsCount,
     templatesCount,
     totalDocumentsReady,
     recentProjects,
+    consistencySummary,
+    recentConsistency,
   };
 }
