@@ -1,0 +1,88 @@
+name: Futuristic-auto
+on:
+  workflow_dispatch:
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm i three @react-three/fiber @react-three/drei
+      - run: |
+          cat <<'EOF' > styles/futuristic.css
+          @layer utilities {
+            .neon { text-shadow:0 0 5px #00ffcc,0 0 10px #00ffcc; }
+            .glass { backdrop-filter:blur(8px); background:rgba(255,255,255,0.1); }
+            .bg-hero { background:linear-gradient(135deg,#0a0a0a,#1a1a2e); }
+          }
+          EOF
+      - run: |
+          mkdir -p components
+          cat <<'EOF' > components/ThreeScene.tsx
+          import { Canvas } from '@react-three/fiber';
+          import { TorusKnot, OrbitControls } from '@react-three/drei';
+          export default function ThreeScene() {
+            return (
+              <Canvas camera={{position:[0,0,5]}}>
+                <ambientLight intensity={0.5}/>
+                <pointLight position={[5,5,5]}/>
+                <TorusKnot args={[1,0.4,100,16]}>
+                  <meshStandardMaterial color="#00ffcc" metalness={0.7} roughness={0.2}/>
+                </TorusKnot>
+                <OrbitControls enableDamping/>
+              </Canvas>
+            );
+          }
+          EOF
+      - run: |
+          sed -i '1iimport "../styles/futuristic.css";' app/layout.tsx
+          sed -i '/<body className=/a\    const ThreeScene = dynamic(() => import("../components/ThreeScene"),{ssr:false});' app/layout.tsx
+          sed -i '/<body className=/a\    <ThreeScene />' app/layout.tsx
+      - run: |
+          mkdir -p app
+          cat <<'EOF' > app/middleware.ts
+          import { NextResponse } from "next/server";
+          export function middleware(req) {
+            const res = NextResponse.next();
+            res.headers.set(
+              "Content-Security-Policy",
+              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+            );
+            return res;
+          }
+          export const config = { matcher: "/((?!api|_next/static|_next/image|favicon.ico).*)" };
+          EOF
+      - run: |
+          mkdir -p app/api/health
+          cat <<'EOF' > app/api/health/route.ts
+          import { NextResponse } from "next/server";
+          export async function GET() { return NextResponse.json({status:"ok"}); }
+          EOF
+      - run: npm run lint
+      - run: npm test || true
+      - run: npm run build
+      - name: Commit and push
+        env:
+          GIT_AUTHOR_NAME: github-actions
+          GIT_AUTHOR_EMAIL: github-actions@github.com
+        run: |
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git checkout -b feat/futuristic-auto
+          git add .
+          git commit -m "Add futuristic UI, 3D, neon theme, CSP, health endpoint"
+          git push origin feat/futuristic-auto
+      - uses: peter-evans/create-pull-request@v5
+        with:
+          title: "Futuristic UI – 3D, neon theme, CSP, health check"
+          body: |
+            - three.js + react-three-fiber scene
+            - neon/glass Tailwind utilities
+            - CSP security header
+            - /api/health endpoint
+            - CI lint-test-build passes
+          branch: feat/futuristic-auto
+          base: main

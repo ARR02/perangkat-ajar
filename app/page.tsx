@@ -1,140 +1,169 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import TiltCard from "@/components/tilt-card";
+import { ArrowRight, BrainCircuit, FileSearch, FileText, Layers, Sparkles, Zap } from "lucide-react";
+
+const flowSteps = [
+  { code: "CP", title: "Capaian Pembelajaran", desc: "Elemen & capaian resmi per fase kurikulum." },
+  { code: "TP", title: "Tujuan Pembelajaran", desc: "Penurunan kompetensi & lingkup materi spesifik." },
+  { code: "ATP", title: "Alur Tujuan Pembelajaran", desc: "Sekuens logis kronologis & alokasi jam tatap muka." },
+  { code: "KKTP", title: "Kriteria Ketercapaian", desc: "Rubrik & instrumen asesmen ketercapaian tujuan." },
+  { code: "PROTA", title: "Program Tahunan", desc: "Matriks distribusi materi selama satu tahun ajaran." },
+  { code: "PROSEM", title: "Program Semester", desc: "Pemetaan mingguan per bulan untuk kegiatan KBM." },
+  { code: "Modul", title: "Modul Ajar (RPP Plus)", desc: "Langkah pembelajaran lengkap + Profil Pelajar Pancasila." },
+  { code: "LKPD", title: "Lembar Kerja Siswa", desc: "Instruksi kerja, lembar penugasan, dan refleksi." },
+];
+
+const features = [
+  {
+    icon: BrainCircuit,
+    accent: "text-[#22d3ee]",
+    title: "Structured JSON IR",
+    desc: "AI menghasilkan representasi data terstruktur yang tervalidasi skema Zod sebelum dirender atau diekspor.",
+  },
+  {
+    icon: FileSearch,
+    accent: "text-[#4ade80]",
+    title: "Consistency Engine",
+    desc: "Mendeteksi otomatis ketidakcocokan kode TP, keterikatan alur ATP, dan beban alokasi jam PROTA/PROSEM.",
+  },
+  {
+    icon: FileText,
+    accent: "text-[#c084fc]",
+    title: "Ekspor Word (.DOCX) Resmi",
+    desc: "Hasil generate langsung dikonversi menjadi berkas DOCX terformat rapi dengan tabel identitas standar sekolah.",
+  },
+];
+
+const stats = [
+  { value: "8", label: "Dokumen Otomatis" },
+  { value: "1", label: "Sumber Kebenaran" },
+  { value: "6", label: "Fase Kurikulum" },
+  { value: ".DOCX", label: "Format Ekspor" },
+];
 
 export default async function HomePage() {
   const session = await auth();
-
-  const flowSteps = [
-    { code: "CP", title: "Capaian Pembelajaran", desc: "Elemen & capaian resmi per fase kurikulum." },
-    { code: "TP", title: "Tujuan Pembelajaran", desc: "Penurunan kompetensi & lingkup materi spesifik." },
-    { code: "ATP", title: "Alur Tujuan Pembelajaran", desc: "Sekuens logis kronologis & alokasi jam tatap muka." },
-    { code: "KKTP", title: "Kriteria Ketercapaian", desc: "Rubrik & instrumen asesmen ketercapaian tujuan." },
-    { code: "PROTA", title: "Program Tahunan", desc: "Matriks distribusi materi selama satu tahun ajaran." },
-    { code: "PROSEM", title: "Program Semester", desc: "Pemetaan mingguan per bulan untuk kegiatan KBM." },
-    { code: "Modul", title: "Modul Ajar (RPP Plus)", desc: "Langkah pembelajaran lengkap + Profil Pelajar Pancasila." },
-    { code: "LKPD", title: "Lembar Kerja Siswa", desc: "Instruksi kerja, lembar penugasan, dan refleksi." },
-  ];
+  const startHref = session?.user ? "/projects/new" : "/login";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-white to-gray-50 flex flex-col justify-between">
-      {/* Navbar */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+    <div className="relative flex min-h-screen flex-col">
+      <div className="grid-floor pointer-events-none -z-[1] opacity-60" aria-hidden />
+
+      <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[rgba(5,7,15,0.6)] backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c5cff] to-[#22d3ee] text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(124,92,255,0.9)]">
               P
             </span>
-            <span className="font-bold text-gray-900 text-base">Perangkat Ajar AI</span>
-          </div>
+            <span className="text-base font-bold text-white">Perangkat Ajar AI</span>
+          </Link>
 
-          <div className="flex items-center gap-3">
-            {session?.user ? (
-              <Link
-                href="/dashboard"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition"
-              >
-                Masuk Dashboard →
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 shadow-sm transition"
-              >
-                Login / Masuk Demo
-              </Link>
-            )}
-          </div>
+          <nav className="hidden items-center gap-6 text-xs font-semibold text-[var(--muted)] md:flex">
+            <a href="#alur" className="transition hover:text-white">Alur</a>
+            <a href="#kemampuan" className="transition hover:text-white">Kemampuan</a>
+            <a href="#mulai" className="transition hover:text-white">Mulai</a>
+          </nav>
+
+          <Link href={session?.user ? "/dashboard" : "/login"} className="btn-neon !px-4 !py-2 !text-xs">
+            {session?.user ? "Masuk Dashboard" : "Login / Demo"}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-6 py-16 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-3.5 py-1 text-xs font-semibold text-blue-800 mb-6">
-          <span>✨ Kurikulum Merdeka AI Platform</span>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-20">
+        <div className="text-center">
+          <span className="chip">
+            <Sparkles className="h-3.5 w-3.5" />
+            Kurikulum Merdeka AI Platform
+          </span>
+
+          <h1 className="text-glow mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white md:text-6xl">
+            Otomasi Penyusunan <span className="text-gradient">Perangkat Ajar</span> Lengkap &amp; Terintegrasi
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[var(--muted)] md:text-lg">
+            Dari <strong className="text-white">Capaian Pembelajaran (CP)</strong> hingga{" "}
+            <strong className="text-white">Modul Ajar &amp; LKPD</strong> dalam satu alur terstruktur. Dilengkapi
+            validasi konsistensi otomatis dan ekspor siap pakai ke format Word.
+          </p>
+
+          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link href={startHref} className="btn-neon w-full sm:w-auto">
+              <Zap className="h-4 w-4" />
+              Mulai Buat Perangkat Ajar
+            </Link>
+            <Link href="/dashboard" className="btn-ghost w-full sm:w-auto">
+              Lihat Ruang Kerja Demo
+            </Link>
+          </div>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight max-w-3xl mx-auto leading-tight">
-          Otomasi Penyusunan <span className="text-blue-600">Perangkat Ajar</span> Lengkap & Terintegrasi
-        </h1>
-
-        <p className="mt-5 text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Dari <strong>Capaian Pembelajaran (CP)</strong> hingga <strong>Modul Ajar & LKPD</strong> dalam satu alur terstruktur. Dilengkapi validasi konsistensi otomatis dan ekspor siap pakai ke format Word (.docx).
-        </p>
-
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href={session?.user ? "/projects/new" : "/login"}
-            className="w-full sm:w-auto rounded-xl bg-blue-600 px-8 py-3.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 transition"
-          >
-            Mulai Buat Perangkat Ajar →
-          </Link>
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto rounded-xl border border-gray-300 bg-white px-8 py-3.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
-          >
-            Lihat Ruang Kerja Demo
-          </Link>
+        <div className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="glass holo-card rounded-2xl px-5 py-6 text-center">
+              <p className="stat-num text-3xl font-extrabold md:text-4xl">{stat.value}</p>
+              <p className="mt-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">{stat.label}</p>
+            </div>
+          ))}
         </div>
 
-        {/* 8-Step Pipeline */}
-        <div className="mt-20">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900">Alur Penyusunan Terintegrasi</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Prinsip <em>&quot;Generate once, reuse everywhere&quot;</em> menjamin konsistensi seluruh dokumen turunan.
+        <section id="alur" className="mt-24 scroll-mt-20">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold text-white md:text-3xl">Alur Penyusunan Terintegrasi</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Prinsip <em className="text-[#22d3ee] not-italic">generate once, reuse everywhere</em> menjaga
+              konsistensi seluruh dokumen turunan.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {flowSteps.map((step, idx) => (
-              <div
-                key={step.code}
-                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300 hover:shadow-md transition"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">
+              <TiltCard key={step.code} className="p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="rounded-md border border-[rgba(34,211,238,0.32)] bg-[rgba(34,211,238,0.12)] px-2 py-0.5 text-xs font-bold text-[#7dd3fc]">
                     {step.code}
                   </span>
-                  <span className="text-xs text-gray-400 font-semibold">Tahap {idx + 1}</span>
+                  <span className="text-[11px] font-semibold text-[var(--muted)]">Tahap {idx + 1}</span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm">{step.title}</h3>
-                <p className="mt-1 text-xs text-gray-500 leading-relaxed">{step.desc}</p>
-              </div>
+                <h3 className="text-sm font-bold text-white">{step.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-[var(--muted)]">{step.desc}</p>
+              </TiltCard>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Feature Highlights */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-          <div className="rounded-xl bg-blue-50/60 border border-blue-100 p-6">
-            <div className="text-2xl mb-2">🎯</div>
-            <h3 className="font-bold text-blue-950 text-base">Structured JSON IR</h3>
-            <p className="mt-2 text-xs text-blue-900/80 leading-relaxed">
-              AI menghasilkan representasi data terstruktur yang tervalidasi skema Zod sebelum dirender atau diekspor.
-            </p>
+        <section id="kemampuan" className="mt-24 scroll-mt-20">
+          <div className="grid gap-5 md:grid-cols-3">
+            {features.map((feature) => (
+              <TiltCard key={feature.title} className="p-6">
+                <feature.icon className={`h-7 w-7 ${feature.accent}`} />
+                <h3 className="mt-3 text-base font-bold text-white">{feature.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{feature.desc}</p>
+              </TiltCard>
+            ))}
           </div>
+        </section>
 
-          <div className="rounded-xl bg-green-50/60 border border-green-100 p-6">
-            <div className="text-2xl mb-2">🔍</div>
-            <h3 className="font-bold text-green-950 text-base">Consistency Engine</h3>
-            <p className="mt-2 text-xs text-green-900/80 leading-relaxed">
-              Mendeteksi otomatis ketidakcocokan kode TP, keterikatan alur ATP, dan beban alokasi jam belajar PROTA/PROSEM.
+        <section id="mulai" className="mt-24 scroll-mt-20">
+          <TiltCard className="p-10 text-center">
+            <Layers className="mx-auto h-8 w-8 text-[#22d3ee]" />
+            <h2 className="mt-4 text-2xl font-bold text-white">Siap menyusun perangkat ajar hari ini?</h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--muted)]">
+              Masuk ke ruang kerja, pilih paket dokumen, lalu biarkan AI menyusun draf yang konsisten dengan
+              kurikulum sekolah Anda.
             </p>
-          </div>
-
-          <div className="rounded-xl bg-purple-50/60 border border-purple-100 p-6">
-            <div className="text-2xl mb-2">📄</div>
-            <h3 className="font-bold text-purple-950 text-base">Ekspor Word (.DOCX) Resmi</h3>
-            <p className="mt-2 text-xs text-purple-900/80 leading-relaxed">
-              Hasil generate langsung dikonversi menjadi berkas DOCX terformat rapi dengan tabel identitas dan struktur standar sekolah.
-            </p>
-          </div>
-        </div>
+            <Link href={startHref} className="btn-neon mt-7">
+              Buka Ruang Kerja
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </TiltCard>
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white py-8">
-        <div className="max-w-7xl mx-auto px-6 text-center text-xs text-gray-400">
+      <footer className="border-t border-[var(--line)] py-8">
+        <div className="mx-auto max-w-7xl px-6 text-center text-xs text-[var(--muted)]">
           Perangkat Ajar AI © {new Date().getFullYear()} · Platform Otomasi Kurikulum Merdeka
         </div>
       </footer>

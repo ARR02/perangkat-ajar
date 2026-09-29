@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getDashboardStats } from "@/services/project";
-import { redirect } from "next/navigation";
+import { ArrowRight, FileStack, FolderOpen, Library, Plus, ShieldCheck } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -11,85 +12,128 @@ export default async function DashboardPage() {
 
   const stats = await getDashboardStats(session.user.id);
 
+  const cards = [
+    {
+      label: "Proyek Perangkat",
+      value: stats.projectsCount,
+      hint: "Total paket ajar aktif",
+      icon: FolderOpen,
+      accent: "text-[#22d3ee]",
+    },
+    {
+      label: "Proyek Konsisten",
+      value: `${stats.consistencySummary.passed}/${stats.projectsCount}`,
+      hint: "Lolos cek konsistensi",
+      icon: ShieldCheck,
+      accent: "text-[#4ade80]",
+    },
+    {
+      label: "Dokumen Siap",
+      value: stats.totalDocumentsReady,
+      hint: "CP, TP, ATP, Modul, dll",
+      icon: FileStack,
+      accent: "text-[#4ade80]",
+    },
+    {
+      label: "Satuan Pendidikan",
+      value: stats.schoolsCount || 1,
+      hint: "Sekolah binaan terdaftar",
+      icon: Library,
+      accent: "text-[#c084fc]",
+    },
+    {
+      label: "Template Tersedia",
+      value: Math.max(stats.templatesCount, 1),
+      hint: "Standar Kurikulum Merdeka",
+      icon: FileStack,
+      accent: "text-[#fbbf24]",
+    },
+  ];
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="mx-auto max-w-7xl space-y-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Halo, {session.user.name || "Bapak/Ibu Guru"} 👋
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-white">Halo, {session.user.name || "Bapak/Ibu Guru"}</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">
             Selamat datang di Platform Otomasi Perangkat Ajar Kurikulum Merdeka.
           </p>
         </div>
-        <Link
-          href="/projects/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          <span>+ Buat Perangkat Ajar Baru</span>
+        <Link href="/projects/new" className="btn-neon">
+          <Plus className="h-4 w-4" />
+          Buat Perangkat Ajar Baru
         </Link>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-5">
-          <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Proyek Perangkat</span>
-          <span className="mt-2 block text-3xl font-extrabold text-blue-900">{stats.projectsCount}</span>
-          <span className="mt-1 block text-xs text-blue-600">Total paket ajar aktif</span>
-        </div>
-
-        <div className="rounded-xl border border-green-100 bg-green-50/50 p-5">
-          <span className="text-xs font-semibold text-green-700 uppercase tracking-wider">Dokumen Siap</span>
-          <span className="mt-2 block text-3xl font-extrabold text-green-900">{stats.totalDocumentsReady}</span>
-          <span className="mt-1 block text-xs text-green-600">CP, TP, ATP, Modul, dll</span>
-        </div>
-
-        <div className="rounded-xl border border-purple-100 bg-purple-50/50 p-5">
-          <span className="text-xs font-semibold text-purple-700 uppercase tracking-wider">Satuan Pendidikan</span>
-          <span className="mt-2 block text-3xl font-extrabold text-purple-900">{stats.schoolsCount || 1}</span>
-          <span className="mt-1 block text-xs text-purple-600">Sekolah binaan terdaftar</span>
-        </div>
-
-        <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-5">
-          <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Template Tersedia</span>
-          <span className="mt-2 block text-3xl font-extrabold text-amber-900">{Math.max(stats.templatesCount, 1)}</span>
-          <span className="mt-1 block text-xs text-amber-600">Standar Kurikulum Merdeka</span>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {cards.map((card) => (
+          <div key={card.label} className="glass holo-card rounded-2xl p-5">
+            <div className="flex items-start justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                {card.label}
+              </span>
+              <card.icon className={`h-4 w-4 ${card.accent}`} />
+            </div>
+            <span className="stat-num mt-2 block text-4xl font-extrabold">{card.value}</span>
+            <span className="mt-1 block text-xs text-[var(--muted)]">{card.hint}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Recent Projects */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-          <h2 className="text-base font-bold text-gray-900">Proyek Perangkat Ajar Terbaru</h2>
-          <Link href="/projects" className="text-xs font-semibold text-blue-600 hover:text-blue-800">
-            Lihat Semua →
+      <div className="glass holo-card rounded-2xl p-6">
+        <div className="mb-4 flex items-center justify-between border-b border-[var(--line)] pb-4">
+          <h2 className="text-base font-bold text-white">Proyek Perangkat Ajar Terbaru</h2>
+          <Link href="/projects" className="flex items-center gap-1 text-xs font-semibold text-[#7dd3fc] hover:text-white">
+            Lihat Semua
+            <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
         {stats.recentProjects.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-500">
+          <p className="py-8 text-center text-sm text-[var(--muted)]">
             Belum ada proyek. Klik tombol &ldquo;Buat Perangkat Ajar Baru&rdquo; di atas untuk memulai.
-          </div>
+          </p>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {stats.recentProjects.map((project) => (
-              <div key={project.id} className="py-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900">
-                    {project.context?.subject || "Mata Pelajaran"} · Kelas {project.context?.grade} (Fase {project.context?.phase})
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {project.school?.name} · T.A. {project.context?.academicYear} · Semester {project.context?.semester}
-                  </p>
-                </div>
+          <div className="divide-y divide-[var(--line)]">
+            {stats.recentProjects.map((project) => {
+              const cStatus = stats.recentConsistency.get(project.id);
+              const statusCls =
+                cStatus === "passed"
+                  ? "text-[#4ade80]"
+                  : cStatus === "warning"
+                    ? "text-[#fbbf24]"
+                    : "text-[#fb7185]";
+              const statusLabel =
+                cStatus === "passed"
+                  ? "✓ Konsisten"
+                  : cStatus === "warning"
+                    ? "⚠ Perlu review"
+                    : "✗ Inkonsisten";
+              return (
+                <div key={project.id} className="flex items-center justify-between py-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">
+                      {project.context?.subject || "Mata Pelajaran"} · Kelas {project.context?.grade} (Fase{" "}
+                      {project.context?.phase})
+                    </h3>
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">
+                      {project.school?.name} · T.A. {project.context?.academicYear} · Semester{" "}
+                      {project.context?.semester}
+                    </p>
+                    <span className={`mt-1 block text-[11px] font-semibold ${statusCls}`}>
+                      {statusLabel}
+                    </span>
+                  </div>
                 <Link
                   href={`/projects/${project.id}`}
-                  className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition"
+                  className="flex items-center gap-1 rounded-lg border border-[var(--line)] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white transition hover:border-[rgba(34,211,238,0.5)]"
                 >
-                  Buka Proyek →
+                  Buka Proyek
+                  <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
-            ))}
+            );
+          })}
           </div>
         )}
       </div>

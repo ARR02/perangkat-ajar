@@ -10,6 +10,17 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        muted: "var(--muted)",
+        line: "var(--line)",
+        neon: {
+          cyan: "#22d3ee",
+          violet: "#7c5cff",
+          magenta: "#f472b6",
+        },
+      },
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
     },
   },

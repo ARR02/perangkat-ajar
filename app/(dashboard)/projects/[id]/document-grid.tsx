@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CurriculumMaster } from "@/types/curriculum-master";
-import type { ConsistencyResult } from "@/services/consistency";
+import { getFixPlan, type ConsistencyResult } from "@/services/consistency";
 
 interface DocMeta {
   key: "CP" | "TP" | "ATP" | "KKTP" | "PROTA" | "PROSEM" | "MODUL_AJAR" | "LKPD";
@@ -26,20 +26,103 @@ export function DocumentGrid({
   const [messages, setMessages] = useState<Record<string, { text: string; error: boolean }>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
+  const [generatingAll, setGeneratingAll] = useState(false);
+  const [fixing, setFixing] = useState(false);
   const [activePreviewDoc, setActivePreviewDoc] = useState<DocMeta | null>(null);
+  const fixPlan = getFixPlan(consistency.issues);
+
+  const handleGenerateAll = async () => {
+    setGeneratingAll(true);
+    const missing = documents.filter((d) => !d.ready);
+    const generated = new Set<string>();
+    try {
+      for (const doc of missing) {
+        const depReady =
+          !doc.dependsOn ||
+          documents.find((d) => d.key === doc.dependsOn)?.ready ||
+          generated.has(doc.dependsOn);
+        if (!depReady) {
+          setMessages((prev) => ({
+            ...prev,
+            [doc.key]: { text: `Lewati — butuh ${doc.dependsOn} dulu`, error: true },
+          }));
+          continue;
+        }
+        setMessages((prev) => ({ ...prev, [doc.key]: { text: "Memproses AI...", error: false } }));
+        try {
+          const res = await fetch(`/api/projects/${projectId}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: doc.key }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            generated.add(doc.key);
+            setMessages((prev) => ({
+              ...prev,
+              [doc.key]: { text: "Berhasil dibuat!", error: false },
+            }));
+          } else {
+            setMessages((prev) => ({
+              ...prev,
+              [doc.key]: { text: data.error || "Gagal generate", error: true },
+            }));
+          }
+        } catch {
+          setMessages((prev) => ({
+            ...prev,
+            [doc.key]: { text: "Terjadi kesalahan jaringan", error: true },
+          }));
+        }
+      }
+    } finally {
+      setGeneratingAll(false);
+      window.location.reload();
+    }
+  };
+
+  const handleAutoFix = async () => {
+    if (fixPlan.length === 0) return;
+    const list = fixPlan.map((f) => `• ${f.docKey}: ${f.reason}`).join("\n");
+    if (!window.confirm(`Perbaiki dengan membuat ulang dokumen berikut?\n\n${list}\n\nLanjutkan?`)) return;
+    setFixing(true);
+    try {
+      for (const item of fixPlan) {
+        setMessages((prev) => ({ ...prev, [item.docKey]: { text: "Memproses AI...", error: false } }));
+        try {
+          const res = await fetch(`/api/projects/${projectId}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: item.docKey }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            setMessages((prev) => ({ ...prev, [item.docKey]: { text: "Berhasil diperbaiki!", error: false } }));
+          } else {
+            setMessages((prev) => ({
+              ...prev,
+              [item.docKey]: { text: data.error || "Gagal memperbaiki", error: true },
+            }));
+          }
+        } catch {
+          setMessages((prev) => ({ ...prev, [item.docKey]: { text: "Terjadi kesalahan jaringan", error: true } }));
+        }
+      }
+    } finally {
+      setFixing(false);
+      window.location.reload();
+    }
+  };
 
   const handleGenerate = async (docKey: string, label: string) => {
     setLoading(label);
     setMessages((prev) => ({ ...prev, [docKey]: { text: "Memproses AI...", error: false } }));
 
-    // Map to the exact type expected by API
-    const apiType = docKey === "MODUL_AJAR" ? "Modul Ajar" : docKey;
-
     try {
       const res = await fetch(`/api/projects/${projectId}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: apiType }),
+        body: JSON.stringify({ type: docKey }),
       });
 
       const data = await res.json();
@@ -413,6 +496,24 @@ export function DocumentGrid({
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <button
+            onClick={handleGenerateAll}
+            disabled={generatingAll || documents.every((d) => d.ready)}
+            className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition"
+          >
+            {generatingAll ? "Menyusun semua dokumen..." : "⚡ Generate Semua"}
+          </button>
+          {fixPlan.length > 0 && (
+            <button
+              onClick={handleAutoFix}
+              disabled={fixing}
+              className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500 transition"
+            >
+              {fixing ? "Memperbaiki..." : `🛠 Perbaiki (${fixPlan.length})`}
+            </button>
           )}
         </div>
       </div>
